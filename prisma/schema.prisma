@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  role      String
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  email     String   @unique
+  rg        String   @unique
+  birthdate String   @map("birth_date")
+  phone     String   @unique
+  password  String
+  otpCode   Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizations Organization[]
+  members       Member[]
+  gestors       Gestor[]
+  assistants    Assistant[]
+
+  @@map("users")
+}
+
+model Organization {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  organizationName String   @unique @map("organization_name")
+  cnpj             String   @unique
+  attachment       String?  @map("registration")
+  documentsTeam    String?  @map("documents_team")
+  registered       Boolean  @map("male_registration")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members    Member[]
+  gestors    Gestor[]
+  assistants Assistant[]
+
+  @@map("organizations")
+}
+
+model Member {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @map("organization_id") @db.Uuid
+  organizationName String   @map("organization_name")
+  userId           String?  @map("user_id") @db.Uuid
+  firstName        String   @map("first_name")
+  lastName         String   @map("last_name")
+  rg               String   @unique
+  birthdate        String   @map("birth_date")
+  registration     String
+  team             String
+  exclusive        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@map("members")
+}
+
+model Gestor {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @map("organization_id") @db.Uuid
+  organizationName String   @map("organization_name")
+  userId           String?  @map("user_id") @db.Uuid
+  firstName        String   @map("first_name")
+  lastName         String   @map("last_name")
+  rg               String   @unique
+  team             String
+  birthdate        String   @map("birth_date")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@map("gestors")
+}
+
+model Assistant {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String?  @map("organization_id") @db.Uuid
+  organizationName String   @map("organization_name")
+  userId           String?  @map("user_id") @db.Uuid
+  firstName        String   @map("first_name")
+  lastName         String   @map("last_name")
+  rg               String   @unique
+  team             String
+  birthdate        String   @map("birth_date")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id])
+
+  @@map("assistants")
+}
